@@ -128,7 +128,10 @@ do
         rtdbpidfile="/var/run/rethinkdb/$instance_name/pid_file"
         parent_directory="`dirname "$rtdbpidfile"`"
         if [ ! -e "$parent_directory" ]; then
-            if mkdir -p "$parent_directory"; then
+            if [ ! -d /var/run/rethinkdb ]; then
+                mkdir -m 755 /var/run/rethinkdb
+            fi
+            if mkdir -m 755 "$parent_directory"; then
                 test -n "${runuser:-}"  && chown -- "$runuser"  "$parent_directory"
                 test -n "${rungroup:-}" && chgrp -- "$rungroup" "$parent_directory"
             fi
@@ -193,10 +196,6 @@ do
         if ! get "$conf" bind x; then
             echo "rethinkdb: $instance_name: will only listen on local network interfaces."
             echo "rethinkdb: $instance_name: To expose rethinkdb on the network, add the 'bind=all' option to $rtdbconffile"
-        fi
-
-        if [ -e /var/run -a "${rtdbpidfile#/var/run}" != "$rtdbpidfile" ] ; then
-            mkdir -p "`dirname "$rtdbpidfile"`"
         fi
 
         if [ -e "$rtdbpidfile" ] && is_running "$(cat "$rtdbpidfile")"; then
